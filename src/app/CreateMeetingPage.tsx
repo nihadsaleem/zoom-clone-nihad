@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useStreamVideoClient } from "@stream-io/video-react-sdk";
+import { Call, useStreamVideoClient } from "@stream-io/video-react-sdk";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
@@ -10,9 +10,34 @@ export default function CreateMeetingPage() {
     const [startTimeInput, setStartTimeInput] = useState("");
     const [participantsInput, setParticipantsInput] = useState("");
 
+    const [call, setCall] = useState<Call>();
+
     const client = useStreamVideoClient();
 
     const {user} = useUser();
+
+    async function createMeeting() {
+        if (!client || !user) {
+            return;
+        }
+
+        try {
+            const id= crypto.randomUUID();
+
+            const call = client.call("default",id);
+
+            await call.getOrCreate({
+                data: {
+                    custom: {descriptionInput}
+                }
+            })
+            setCall(call);
+        } catch (error) {
+            console.error(error);
+            alert("Something went wrong. Please try again later.");
+        }
+    }
+
     if (!user || !client) {
         return <Loader2 className="mx-auto animate-spin" />
     }
@@ -26,7 +51,11 @@ export default function CreateMeetingPage() {
             <DescriptionInput value={descriptionInput} onChange={setDescriptionInput} />
             <StartTimeInput value={startTimeInput} onChange={setStartTimeInput} />
             <ParticipantsInput value={participantsInput} onChange={setParticipantsInput} />
+            <button onClick={createMeeting} className="w-full">
+                Create Meeting
+            </button>
         </div>
+        {call && <MeetingLink call={call} />}
     </div>
   )
 }
@@ -134,5 +163,17 @@ function ParticipantsInput({value, onChange}: ParticipantsInputProps){
                 <textarea placeholder="Enter Participant email seperated by commas" value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-md border border-gray-300 p-2" />
             </label>
         )}
+    </div>
+}
+
+interface MeetingLinkProps {
+    call: Call;
+}
+
+function MeetingLink({call}:MeetingLinkProps){
+    const meetingLink = `${process.env.NEXT_PUBLIC_BASE_URL}/meeting/${call.id}`
+
+    return <div className="text-center">
+        {meetingLink}
     </div>
 }
