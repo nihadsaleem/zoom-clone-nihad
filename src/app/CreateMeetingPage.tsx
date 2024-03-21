@@ -8,6 +8,7 @@ import { useState } from "react";
 export default function CreateMeetingPage() {
     const [descriptionInput, setDescriptionInput] = useState("");
     const [startTimeInput, setStartTimeInput] = useState("");
+    const [participantsInput, setParticipantsInput] = useState("");
 
     const client = useStreamVideoClient();
 
@@ -24,6 +25,7 @@ export default function CreateMeetingPage() {
             <h2 className="text-xl font-bold">Create a new meeting..</h2>
             <DescriptionInput value={descriptionInput} onChange={setDescriptionInput} />
             <StartTimeInput value={startTimeInput} onChange={setStartTimeInput} />
+            <ParticipantsInput value={participantsInput} onChange={setParticipantsInput} />
         </div>
     </div>
   )
@@ -94,6 +96,42 @@ function StartTimeInput({value, onChange}: StartTimeInputProps){
                     min={dateTimeLocalNow}
                     className="w-full rounded-md border border-gray-300 p-2"
                 />
+            </label>
+        )}
+    </div>
+}
+
+interface ParticipantsInputProps {
+    value: string,
+    onChange: (value: string) => void;
+}
+
+function ParticipantsInput({value, onChange}: ParticipantsInputProps){
+    const [active, setActive] = useState(false);
+
+    return <div className="space-y-2">
+        <div className="font-medium">Participants</div>
+        <label className="flex items-center gap-1.5">
+            <input type="radio"
+            checked={!active}
+            onChange={() =>{
+                setActive(false);
+                onChange("");
+            }}
+            />
+            Everyone with link can join
+        </label>
+        <label className="flex items-center gap-1.5">
+            <input type="radio"
+            checked={active}
+            onChange={() => setActive(true)}
+            />
+            Private Meeting
+        </label>
+        {active && (
+            <label className="block space-y-1">
+                <span className="font-medium">Participant emails</span>
+                <textarea placeholder="Enter Participant email seperated by commas" value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-md border border-gray-300 p-2" />
             </label>
         )}
     </div>
